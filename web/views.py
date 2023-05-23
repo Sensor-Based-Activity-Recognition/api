@@ -2,7 +2,6 @@
 import io
 import json
 import gzip
-from IPython.display import display
 from web.utils.pipelineCNN import PipelineCNN
 from web.utils.modelCNN import Runner as RunnerCNN
 import pandas as pd
