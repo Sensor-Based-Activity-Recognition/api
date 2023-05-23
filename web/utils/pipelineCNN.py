@@ -11,15 +11,28 @@ class PipelineCNN:
         self,
         data,
     ):
+        data = self.cast(data)
+        data = self.resample(data, 100, "linear")
         data = self.resample(data, 50, "linear")
         windows = self.segmentate(data, 5, 0)
         stft = self.stft(windows)
         return stft
 
-    def resample(self, data, resample_frequency_hz, interpolation_method):
-        # read parquet file
-        data = data.set_index("timestamp", drop=True)
+    def cast(self, data):
+        data["timestamp"] = pd.to_datetime(data["timestamp"])
 
+        data = data.groupby(
+            pd.to_datetime(data["timestamp"].astype("int") // 10000000 * 10000000)
+        ).mean()
+
+        data = data.drop(columns=["timestamp"])
+
+        # sort by index (timestamp)
+        data = data.sort_values(by="timestamp")
+
+        return data
+
+    def resample(self, data, resample_frequency_hz, interpolation_method):
         data = data.resample(
             f"{int(1E6/resample_frequency_hz)}us", origin="start"
         ).interpolate(method=interpolation_method)
@@ -32,6 +45,9 @@ class PipelineCNN:
                     f"Warning: recording has more than 1 NA values in column with index {col}. Backward filling."
                 )
         data = data.fillna(method="bfill")
+
+        # convert RangeIndex to DatetimeIndex
+        data.index = pd.to_datetime(data.index)
 
         return data
 
