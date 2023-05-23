@@ -14,7 +14,7 @@ class PipelineCNN:
         data = self.cast(data)
         data = self.resample(data, 100, "linear")
         data = self.resample(data, 50, "linear")
-        data = self.calibrate_accelerometer(data)
+        # data = self.calibrate_accelerometer(data)
         windows = self.segmentate(data, 5, 0)
         stft = self.stft(windows)
         return stft
@@ -30,9 +30,6 @@ class PipelineCNN:
 
         # sort by index (timestamp)
         data = data.sort_values(by="timestamp")
-
-        # normalize
-        # data = data - data.mean()
 
         return data
 
