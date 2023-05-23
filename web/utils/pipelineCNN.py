@@ -31,7 +31,7 @@ class PipelineCNN:
         data = data.sort_values(by="timestamp")
 
         # normalize
-        data = data - data.mean()
+        # data = data - data.mean()
 
         return data
 
@@ -51,6 +51,50 @@ class PipelineCNN:
 
         # convert RangeIndex to DatetimeIndex
         data.index = pd.to_datetime(data.index)
+
+        return data
+
+    def calibrate_accelerometer(self, data):
+        # Constants
+        GRAVITY = 9.81  # Earth's gravitational acceleration in m/s^2
+
+        # Extract sensor measurements from the DataFrame
+        accelerometer = data[
+            ["Accelerometer_x", "Accelerometer_y", "Accelerometer_z"]
+        ].values
+        gyroscope = data[["Gyroscope_x", "Gyroscope_y", "Gyroscope_z"]].values
+        magnetometer = data[
+            ["Magnetometer_x", "Magnetometer_y", "Magnetometer_z"]
+        ].values
+
+        # Normalize accelerometer and magnetometer measurements
+        accelerometer_norm = np.linalg.norm(accelerometer, axis=1, keepdims=True)
+        magnetometer_norm = np.linalg.norm(magnetometer, axis=1, keepdims=True)
+        accelerometer_norm = accelerometer / accelerometer_norm
+        magnetometer_norm = magnetometer / magnetometer_norm
+
+        # Calculate pitch and roll angles from accelerometer and magnetometer
+        pitch = np.arcsin(accelerometer_norm[:, 0])
+        roll = -np.arctan2(accelerometer_norm[:, 1], accelerometer_norm[:, 2])
+
+        # Calculate the rotation matrix from the pitch and roll angles
+        rotation_matrix = np.column_stack(
+            (np.cos(roll), np.sin(roll) * np.sin(pitch), np.sin(roll) * np.cos(pitch))
+        )
+
+        # Rotate the magnetometer measurements to the Earth frame
+        magnetometer_earth = np.dot(magnetometer_norm, rotation_matrix)
+
+        # Calculate the gravity component based on the rotated magnetometer measurements
+        gravity_component = GRAVITY * magnetometer_earth
+
+        # Remove the gravity component from the accelerometer measurements
+        accelerometer_without_gravity = accelerometer - gravity_component
+
+        # Save the results to the DataFrame
+        data["Accelerometer_x"] = accelerometer_without_gravity[:, 0]
+        data["Accelerometer_y"] = accelerometer_without_gravity[:, 1]
+        data["Accelerometer_z"] = accelerometer_without_gravity[:, 2]
 
         return data
 
