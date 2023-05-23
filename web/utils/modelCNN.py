@@ -9,7 +9,7 @@ class DataModule(Dataset):
     def __init__(self, data):
         super().__init__()
         self.data = data
-        self.data = [torch.tensor(image[1]) for image in self.data]
+        self.data = [torch.tensor(image[1]).float() for image in self.data]
 
     def __len__(self):
         return len(self.data)

@@ -1,7 +1,8 @@
 # from django.shortcuts import render
 import io
 import json
-import brotli
+import gzip
+from IPython.display import display
 from web.utils.pipelineCNN import PipelineCNN
 from web.utils.modelCNN import Runner as RunnerCNN
 import pandas as pd
@@ -13,12 +14,14 @@ from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 @csrf_exempt
 def CNN(request):
-    # get the request body
-    body = io.BytesIO(request.body)
-    # decode the body using brotli
-    buffer = io.BytesIO(brotli.decompress(body.read()))
-    # convert the parquet body to a dataframe
-    data = pd.read_parquet(buffer)
+    # decompress the request body
+    body = gzip.decompress(request.body)
+    # decode the body using utf-8
+    body = io.StringIO(body.decode("utf-8"))
+    # convert the csv body to a dataframe
+    data = pd.read_csv(body)
+    # convert timestamp to datetime
+    data["timestamp"] = pd.to_datetime(data["timestamp"])
 
     # run through pipeline
     data = PipelineCNN().run(data)
