@@ -14,6 +14,7 @@ class PipelineCNN:
         data = self.cast(data)
         data = self.resample(data, 100, "linear")
         data = self.resample(data, 50, "linear")
+        data = self.calibrate_accelerometer(data)
         windows = self.segmentate(data, 5, 0)
         stft = self.stft(windows)
         return stft
@@ -62,7 +63,6 @@ class PipelineCNN:
         accelerometer = data[
             ["Accelerometer_x", "Accelerometer_y", "Accelerometer_z"]
         ].values
-        gyroscope = data[["Gyroscope_x", "Gyroscope_y", "Gyroscope_z"]].values
         magnetometer = data[
             ["Magnetometer_x", "Magnetometer_y", "Magnetometer_z"]
         ].values
@@ -77,13 +77,18 @@ class PipelineCNN:
         pitch = np.arcsin(accelerometer_norm[:, 0])
         roll = -np.arctan2(accelerometer_norm[:, 1], accelerometer_norm[:, 2])
 
-        # Calculate the rotation matrix from the pitch and roll angles
-        rotation_matrix = np.column_stack(
-            (np.cos(roll), np.sin(roll) * np.sin(pitch), np.sin(roll) * np.cos(pitch))
-        )
+        # Calculate the rotation matrix for each sample
+        rotation_matrix = np.zeros((len(pitch), 3, 3))
+        rotation_matrix[:, 0, 0] = np.cos(roll)
+        rotation_matrix[:, 0, 1] = np.sin(roll) * np.sin(pitch)
+        rotation_matrix[:, 0, 2] = np.sin(roll) * np.cos(pitch)
+        rotation_matrix[:, 1, 1] = np.cos(pitch)
+        rotation_matrix[:, 2, 0] = -np.sin(roll)
+        rotation_matrix[:, 2, 1] = np.cos(roll) * np.sin(pitch)
+        rotation_matrix[:, 2, 2] = np.cos(roll) * np.cos(pitch)
 
-        # Rotate the magnetometer measurements to the Earth frame
-        magnetometer_earth = np.dot(magnetometer_norm, rotation_matrix)
+        # Rotate the magnetometer measurements to the Earth frame for each sample
+        magnetometer_earth = np.einsum("ijk,ik->ij", rotation_matrix, magnetometer_norm)
 
         # Calculate the gravity component based on the rotated magnetometer measurements
         gravity_component = GRAVITY * magnetometer_earth
