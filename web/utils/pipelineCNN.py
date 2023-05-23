@@ -30,6 +30,9 @@ class PipelineCNN:
         # sort by index (timestamp)
         data = data.sort_values(by="timestamp")
 
+        # normalize
+        data = data - data.mean()
+
         return data
 
     def resample(self, data, resample_frequency_hz, interpolation_method):
