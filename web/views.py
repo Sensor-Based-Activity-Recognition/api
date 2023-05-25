@@ -10,9 +10,13 @@ import pandas as pd
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+runnerCNN = RunnerCNN("web/utils/modelCNN.pkl")
+runnerHGBC = RunnerHGBC("web/utils/modelHGBC.pkl")
+pipeline = Pipeline()
+
 
 @csrf_exempt
-def index(request):
+def index(_):
     return HttpResponse("Use /CNN or /HGBC for API Requests")
 
 
@@ -20,42 +24,39 @@ def index(request):
 @csrf_exempt
 def CNN(request):
     # decompress the request body
-    body = gzip.decompress(request.body)
-    # decode the body using utf-8
-    body = io.StringIO(body.decode("utf-8"))
-    # convert the csv body to a dataframe
-    data = pd.read_csv(body)
+    data = __decompress__(request)
 
     # run through pipeline
-    data = Pipeline().run(data, model="CNN")
-    # run through model
-    runner = RunnerCNN("web/utils/modelCNN.pkl")
-    result = runner.run(data)
+    data = pipeline.run(data, model="CNN")
 
-    # dictionary to json
-    result = json.dumps(result)
+    # run through model
+    result = runnerCNN.run(data)
 
     # return the result
-    return HttpResponse(result)
+    return HttpResponse(json.dumps(result))
 
 
 @csrf_exempt
 def HGBC(request):
+    # decompress the request body
+    data = __decompress__(request)
+
+    # run through pipeline
+    data = pipeline.run(data, model="HGBC")
+
+    # run through model
+    result = runnerHGBC.run(data)
+
+    # return the result
+    return HttpResponse(json.dumps(result))
+
+
+# Helper functions
+def __decompress__(request):
     # decompress the request body
     body = gzip.decompress(request.body)
     # decode the body using utf-8
     body = io.StringIO(body.decode("utf-8"))
     # convert the csv body to a dataframe
     data = pd.read_csv(body)
-
-    # run through pipeline
-    data = Pipeline().run(data, model="HGBC")
-    # run through model
-    runner = RunnerHGBC("web/utils/modelHGBC.pkl")
-    result = runner.run(data)
-
-    # dictionary to json
-    result = json.dumps(result)
-
-    # return the result
-    return HttpResponse(result)
+    return data

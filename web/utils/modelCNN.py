@@ -70,28 +70,25 @@ class Runner:
         self.model.eval()
 
     def run(self, data):
-        # Load data into dataloader
+        activities = [
+            "Sitzen",
+            "Laufen",
+            "Velofahren",
+            "Rennen",
+            "Stehen",
+            "Treppenlaufen",
+        ]
         data = DataModule(data)
 
-        # Load onehotencode's
-        onehotencode = {
-            0: "Sitzen",
-            1: "Laufen",
-            2: "Velofahren",
-            3: "Rennen",
-            4: "Stehen",
-            5: "Treppenlaufen",
-        }
-
-        # Run data through model
         results = {}
-        for index, spectrogram in enumerate(data):
+        for i, spectrogram in enumerate(data):
             # predict
-            result = self.model(spectrogram)
-            # get index of highest value
-            result = torch.argmax(result).item()
-            # get activity from onehotencode
-            result = onehotencode[result]
+            result = self.model(spectrogram.unsqueeze(0))
+            # get softmax probabilities
+            result = torch.softmax(result, dim=1).detach().numpy().round(3)
             # add to results
-            results[index] = result
+            results[i] = {
+                activities[j]: str(result[0][j]) for j in range(len(activities))
+            }
+
         return results

@@ -1,5 +1,5 @@
-import torch
 import pickle
+import numpy as np
 
 
 class Runner:
@@ -9,20 +9,18 @@ class Runner:
             self.model = pickle.load(f)
 
     def run(self, data):
-        # Load onehotencode's
-        onehotencode = {
-            0: "Sitzen",
-            1: "Laufen",
-            2: "Velofahren",
-            3: "Rennen",
-            4: "Stehen",
-            5: "Treppenlaufen",
-        }
-
-        predictions = self.model.predict(data)
+        predictions = self.model.predict_proba(data).round(3)
+        activities = [
+            "Sitzen",
+            "Laufen",
+            "Velofahren",
+            "Rennen",
+            "Stehen",
+            "Treppenlaufen",
+        ]
 
         results = {}
         for i, prediction in enumerate(predictions):
-            results[i] = onehotencode[prediction]
+            results[i] = {activities[j]: prediction[j] for j in range(len(activities))}
 
         return results
