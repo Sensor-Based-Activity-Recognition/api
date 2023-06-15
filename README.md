@@ -1,7 +1,7 @@
 # api
-Die Sensor Based Activity Recognition (SBAR) API ist eine Machine Learning-basierte API, die auf unkalibrierten Sensordaten beruht. Die API verwendet verschiedene Machine- und Deep-Learning Modelle, um Bewegungsprofile vorherzusagen. Diese API hat zwei Hauptendpunkte, die CNN und HGBC heißen und jeweils unterschiedliche Modelle verwenden.
+Die Sensor Based Activity Recognition (SBAR) API ist eine Machine Learning-basierte API, die auf unkalibrierten Sensordaten beruht. Die API verwendet verschiedene Machine- und Deep-Learning Modelle, um Bewegungsprofile vorherzusagen. Diese API hat zwei Hauptendpunkte, die CNN und HGBC heissen und jeweils unterschiedliche Modelle verwenden.
 
-## Endpunkte:
+## Endpunkte
 Die beiden Hauptendpunkte sind:
 
 - CNN: Ein Endpunkt, der ein Convolutional Neural Network (CNN) verwendet. Dieses Modell nutzt STFT Spektren zur Vorhersage von Bewegungsprofilen. Zu erreichen unter: https://sbar.fuet.ch/CNN
@@ -10,23 +10,23 @@ Die beiden Hauptendpunkte sind:
 
 Die Endpunkte erwarten Daten im CSV-Format, die gzip-komprimiert sind.
 
-## Anforderungen:
+## Anforderungen
 - Python 3.10 oder höher
 - Die Python-Pakete, die in der Datei requirements.txt aufgeführt sind.
 
-## Installation mittels Docker (Linux):
+## Installation mittels Docker (Linux)
 Um die API mittels Docker zu installieren, führen Sie die folgenden Schritte aus:
 
 1. Klonen Sie das Repository mit ```git clone https://github.com/Sensor-Based-Activity-Recognition/api.git```.
 2. Wechseln Sie in das Verzeichnis.
 3. Passen Sie die Netzwerkeinstellungen in der Datei **create_docker_container.sh** an.
-4. Führen Sie das Skript mit ```sudo sh **create_docker_container**.sh``` aus.
+4. Führen Sie das Skript mit ```sudo sh create_docker_container.sh``` aus.
 5. Richten Sie einen Reverse Proxy (z.B. NGINX) ein, um die API zu routen.
 
-## Nutzung:
+## Nutzung
 Ein Beispiel für einen API-Request finden Sie im Jupyter Notebook **example_request.ipynb**. 
 
-## Response:
+## Response
 Die Response der API ist ein JSON-Objekt, das die Vorhersage der Aktivitäten für verschiedene Zeitsegmente beinhaltet. Beispielsweise sieht eine Response wie folgt aus:
 
 ```json
